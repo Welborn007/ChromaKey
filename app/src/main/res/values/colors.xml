@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+
+    <color name="colorHighlight">#B6B6B6</color>
+    <color name="windowBackground">#EF9A9A</color>
+    <color name="navigationBarColor">#B71C1C</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="teal">#26A69A</color>
+    <color name="Blue">#2196f3</color>
+    <color name="Gray">#757575</color>
+    <color name="MoneyGreen">#4CAF50</color>
+    <color name="bluegray100">#CFD8DC</color>
+
+    <color name="LightGray">#E0E0E0</color>
+    <color name="LightCyan">#80DEEA</color>
+    <color name="LightRed">#EF9A9A</color>
+    <color name="DarkGray">#616161</color>
+
+    <color name="DarkCyan">#00BCD4</color>
+    <color name="DarkRed">#F44336</color>
+    <color name="lightgray1">#F5F5F5</color>
+    <color name="cardbackground">#FFFFFF</color>
+    <color name="headerbackground">#424242</color>
+    <color name="blue">#00bad8</color>
+    <color name="TextColor">#ffffff</color>
+    <color name="TextBlackColor">#000000</color>
+
+    <color name="ActiveGreen">#98ce44</color>
+    <color name="InActiveGreen">#7fb231</color>
+    <color name="ButtonColor">#26a69a</color>
+    <color name="green">#0F0</color>
+    <color name="transBackground">#00000000</color>
+    <color name="txt_font">#4e5572</color>
+    <color name="button_green">#66BB6A</color>
+    <color name="viewColor">#c0c0c0</color>
+</resources>

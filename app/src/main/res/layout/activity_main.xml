@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fancy="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:id="@+id/relativeLay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:background="@drawable/chromekey3"
+            android:elevation="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:background="@color/transBackground"
+            android:layout_margin="30dp"
+            android:elevation="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="500dp">
+
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <com.wonderkiln.camerakit.CameraView xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/CameraView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/clickPic"
+            app:ckCropOutput="false"
+            app:ckDoubleTapToToggleFacing="true"
+            app:ckFacing="back"
+            app:ckFlash="off"
+            app:ckFocus="tapWithMarker"
+            app:ckMethod="standard"
+            app:ckPinchToZoom="true"
+            />
+
+        <mehdi.sakout.fancybuttons.FancyButton
+            android:id="@+id/clickPic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="10dp"
+            android:layout_marginTop="50dp"
+            android:padding="10dp"
+            fancy:fb_borderColor="@color/Gray"
+            fancy:fb_borderWidth="0.5dp"
+            fancy:fb_defaultColor="@android:color/transparent"
+            fancy:fb_focusColor="@color/colorPrimary"
+            fancy:fb_radius="2dp"
+            fancy:fb_text="Click Picture"
+            fancy:fb_textColor="@color/colorPrimaryDark"
+            fancy:fb_textSize="14sp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>
