@@ -10,16 +10,53 @@
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/setImage"
         android:layout_centerInParent="true"
-        android:layout_above="@+id/my_recycler_view"
+        android:layout_above="@+id/linearHolder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/my_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:id="@+id/linearHolder"
+        android:orientation="vertical"
         android:layout_alignParentBottom="true"
-        android:scrollbars="vertical"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/imageHolders"
+            android:layout_marginTop="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/originalImage"
+                android:src="@mipmap/ic_launcher"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+            <ImageView
+                android:id="@+id/cropImage1"
+                android:src="@drawable/cropicon"
+                android:layout_marginLeft="10dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+            <ImageView
+                android:id="@+id/cropImage2"
+                android:src="@drawable/cropicon"
+                android:layout_marginLeft="10dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/my_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:scrollbars="vertical"
+            />
+
+    </LinearLayout>
 
 </RelativeLayout>

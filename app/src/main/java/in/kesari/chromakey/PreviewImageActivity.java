@@ -4,12 +4,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.github.chrisbanes.photoview.PhotoView;
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
@@ -20,9 +23,15 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +52,12 @@ public class PreviewImageActivity extends AppCompatActivity {
     CustomAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
     private  RecyclerView recyclerView;
+    LinearLayout imageHolders;
+    ImageView originalImage,cropImage1,cropImage2;
     int[] myImageList = new int[]{R.drawable.blue, R.drawable.brown,R.drawable.dark_blue, R.drawable.grey,R.drawable.maroon,R.drawable.pink,R.drawable.purple,R.drawable.red,R.drawable.voilet,R.drawable.white};
+    Bitmap myBitmap;
+    boolean crop1Click,crop2Click;
+    Uri resultUri1,resultUri2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +65,7 @@ public class PreviewImageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_preview_image);
 
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        imageHolders = (LinearLayout) findViewById(R.id.imageHolders);
         recyclerView.setHasFixedSize(true);
 
         layoutManager = new LinearLayoutManager(this);
@@ -62,14 +77,63 @@ public class PreviewImageActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         setImage = (PhotoView) findViewById(R.id.setImage);
+        originalImage = (ImageView) findViewById(R.id.originalImage);
+        cropImage1 = (ImageView) findViewById(R.id.cropImage1);
+        cropImage2 = (ImageView) findViewById(R.id.cropImage2);
 
         clickedImagePath = getIntent().getStringExtra("ImagePath");
 
         File imgFile = new File(clickedImagePath);
+
         if(imgFile.exists()){
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             setImage.setImageBitmap(myBitmap);
+            originalImage.setImageBitmap(myBitmap);
         }
+
+        originalImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setImage.setImageBitmap(myBitmap);
+                clickedImagePath = getIntent().getStringExtra("ImagePath");
+            }
+        });
+
+        cropImage1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(resultUri1 != null)
+                {
+                    File file = new File(resultUri1.getPath());
+                    clickedImagePath = file.getPath();
+                    setImage.setImageURI(resultUri1);
+                }
+
+                crop1Click = true;
+                crop2Click= false;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath")))).setCropShape(CropImageView.CropShape.OVAL)
+                        .start(PreviewImageActivity.this);
+            }
+        });
+
+        cropImage2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(resultUri2 != null)
+                {
+                    File file = new File(resultUri2.getPath());
+                    clickedImagePath = file.getPath();
+                    setImage.setImageURI(resultUri2);
+                }
+
+                crop1Click = false;
+                crop2Click= true;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .start(PreviewImageActivity.this);
+            }
+        });
 
         recyclerView.addOnItemTouchListener(
                 new SubItemRecyclerListener(getApplicationContext(), new SubItemRecyclerListener.OnItemClickListener() {
@@ -85,7 +149,7 @@ public class PreviewImageActivity extends AppCompatActivity {
                         {
                             try {
                                 FileOutputStream out = new FileOutputStream(dest);
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
                                 out.flush();
                                 out.close();
                             } catch (Exception e) {
@@ -156,8 +220,72 @@ public class PreviewImageActivity extends AppCompatActivity {
 
             initialize(PreviewImageActivity.this,backgroundPath);
         }
+
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+
+
+                if(crop1Click)
+                {
+
+                    try {
+                        resultUri1 = result.getUri();
+                        File file = new File(resultUri1.getPath());
+                        cropImage1.setImageURI(resultUri1);
+                        clickedImagePath = file.getPath();
+                        setImage.setImageURI(resultUri1);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+                else if(crop2Click)
+                {
+                    try {
+                        resultUri2 = result.getUri();
+                        File file = new File(resultUri2.getPath());
+                        cropImage2.setImageURI(resultUri2);
+                        clickedImagePath = file.getPath();
+                        setImage.setImageURI(resultUri2);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+            }
+        }
     }
 
+    public String savefile(Uri sourceuri)
+    {
+        String sourceFilename= sourceuri.getPath();
+        String destinationFilename = android.os.Environment.getExternalStorageDirectory().getPath()+File.separatorChar+"cropImage.jpg";
+
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+
+        try {
+            bis = new BufferedInputStream(new FileInputStream(sourceFilename));
+            bos = new BufferedOutputStream(new FileOutputStream(destinationFilename, false));
+            byte[] buf = new byte[1024];
+            bis.read(buf);
+            do {
+                bos.write(buf);
+            } while(bis.read(buf) != -1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bis != null) bis.close();
+                if (bos != null) bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return destinationFilename;
+    }
 
     public void initialize(final Activity context, final String backgroundPath) {
         try {
