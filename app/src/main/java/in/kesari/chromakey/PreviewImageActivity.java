@@ -1,9 +1,17 @@
 package in.kesari.chromakey;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -11,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -20,6 +29,18 @@ import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -35,8 +56,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -63,6 +86,8 @@ public class PreviewImageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview_image);
+
+        FirebaseApp.initializeApp(this);
 
         recyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         imageHolders = (LinearLayout) findViewById(R.id.imageHolders);
@@ -163,7 +188,133 @@ public class PreviewImageActivity extends AppCompatActivity {
                     }
                 })
         );
+
+        recognizeFace();
+
+
     }
+
+    public void recognizeFace()
+    {
+        FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(myBitmap);
+
+        FirebaseVisionFaceDetectorOptions highAccuracyOpts =
+                new FirebaseVisionFaceDetectorOptions.Builder()
+                        .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .build();
+
+
+        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance()
+                .getVisionFaceDetector(highAccuracyOpts);
+
+        final Dialog dialog = new Dialog(PreviewImageActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.progressdialog);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialog.show();
+
+        Task<List<FirebaseVisionFace>> result =
+                detector.detectInImage(image)
+                        .addOnSuccessListener(
+                                new OnSuccessListener<List<FirebaseVisionFace>>() {
+                                    @Override
+                                    public void onSuccess(List<FirebaseVisionFace> faces) {
+                                        // Task completed successfully
+                                        // ...
+
+                                        for (FirebaseVisionFace face : faces) {
+                                            Rect bounds = face.getBoundingBox();
+                                            float rotY = face.getHeadEulerAngleY();  // Head is rotated to the right rotY degrees
+                                            float rotZ = face.getHeadEulerAngleZ();  // Head is tilted sideways rotZ degrees
+
+                                            Bitmap tempBitmap = Bitmap.createBitmap(myBitmap.getWidth(), myBitmap.getHeight(), Bitmap.Config.RGB_565);
+                                            Canvas tempCanvas = new Canvas(tempBitmap);
+                                            tempCanvas.drawBitmap(myBitmap, 0, 0, null);
+
+                                            Paint myRectPaint = new Paint();
+                                            myRectPaint.setStrokeWidth(5);
+                                            myRectPaint.setColor(Color.RED);
+                                            myRectPaint.setStyle(Paint.Style.STROKE);
+
+                                            tempCanvas.drawRoundRect(new RectF(bounds.left, bounds.top, bounds.right, bounds.bottom), 2, 2, myRectPaint);
+                                            setImage.setImageDrawable(new BitmapDrawable(getResources(),tempBitmap));
+
+                                            // If landmark detection was enabled (mouth, ears, eyes, cheeks, and
+                                            // nose available):
+                                            FirebaseVisionFaceLandmark leftEar = face.getLandmark(FirebaseVisionFaceLandmark.LEFT_EAR);
+                                            if (leftEar != null) {
+                                                FirebaseVisionPoint leftEarPos = leftEar.getPosition();
+                                            }
+
+                                            // If contour detection was enabled:
+                                            List<FirebaseVisionPoint> leftEyeContour =
+                                                    face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints();
+                                            List<FirebaseVisionPoint> upperLipBottomContour =
+                                                    face.getContour(FirebaseVisionFaceContour.UPPER_LIP_BOTTOM).getPoints();
+
+                                            // If classification was enabled:
+                                            if (face.getSmilingProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
+                                                float smileProb = face.getSmilingProbability();
+                                            }
+                                            if (face.getRightEyeOpenProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
+                                                float rightEyeOpenProb = face.getRightEyeOpenProbability();
+                                            }
+
+                                            // If face tracking was enabled:
+                                            if (face.getTrackingId() != FirebaseVisionFace.INVALID_ID) {
+                                                int id = face.getTrackingId();
+                                            }
+                                        }
+
+                                        dialog.dismiss();
+                                    }
+                                })
+                        .addOnFailureListener(
+                                new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Task failed with an exception
+                                        // ...
+                                        dialog.dismiss();
+                                    }
+                                });
+    }
+
+   /* public void recognizeFace()
+    {
+        Paint myRectPaint = new Paint();
+        myRectPaint.setStrokeWidth(5);
+        myRectPaint.setColor(Color.RED);
+        myRectPaint.setStyle(Paint.Style.STROKE);
+
+        Bitmap tempBitmap = Bitmap.createBitmap(myBitmap.getWidth(), myBitmap.getHeight(), Bitmap.Config.RGB_565);
+        Canvas tempCanvas = new Canvas(tempBitmap);
+        tempCanvas.drawBitmap(myBitmap, 0, 0, null);
+
+        FaceDetector faceDetector = new
+                FaceDetector.Builder(getApplicationContext()).setTrackingEnabled(false)
+                .build();
+        if(!faceDetector.isOperational()){
+            new AlertDialog.Builder(PreviewImageActivity.this).setMessage("Could not set up the face detector!").show();
+            return;
+        }
+
+        Frame frame = new Frame.Builder().setBitmap(myBitmap).build();
+        SparseArray<Face> faces = faceDetector.detect(frame);
+
+        for(int i=0; i<faces.size(); i++) {
+            Face thisFace = faces.valueAt(i);
+            float x1 = thisFace.getPosition().x;
+            float y1 = thisFace.getPosition().y;
+            float x2 = x1 + thisFace.getWidth();
+            float y2 = y1 + thisFace.getHeight();
+            tempCanvas.drawRoundRect(new RectF(x1, y1, x2, y2), 2, 2, myRectPaint);
+        }
+        setImage.setImageDrawable(new BitmapDrawable(getResources(),tempBitmap));
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

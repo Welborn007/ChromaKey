@@ -35,6 +35,7 @@ public class PermissionsActivity extends AppCompatActivity {
                     permStatus = true;
                     Intent intent = new Intent(PermissionsActivity.this,MainActivity.class);
                     startActivity(intent);
+                    finish();
 
                 }catch (Exception e)
                 {

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "616394471045",
+    "firebase_url": "https://chroma-key-af6bc.firebaseio.com",
+    "project_id": "chroma-key-af6bc",
+    "storage_bucket": "chroma-key-af6bc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616394471045:android:fbe18d4ae5f2ceb8",
+        "android_client_info": {
+          "package_name": "in.kesari.chromakey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "616394471045-i7u3h7grnk57qgigfcavmco3asij9o7c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2Sr7kzot5AM_ARnKggolFgMXnGtHa3v4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
