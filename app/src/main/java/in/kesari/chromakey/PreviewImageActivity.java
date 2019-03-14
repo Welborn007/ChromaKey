@@ -47,12 +47,8 @@ import com.jaiselrahman.filepicker.model.MediaFile;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -409,35 +405,6 @@ public class PreviewImageActivity extends AppCompatActivity {
         }
     }
 
-    public String savefile(Uri sourceuri)
-    {
-        String sourceFilename= sourceuri.getPath();
-        String destinationFilename = android.os.Environment.getExternalStorageDirectory().getPath()+File.separatorChar+"cropImage.jpg";
-
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
-
-        try {
-            bis = new BufferedInputStream(new FileInputStream(sourceFilename));
-            bos = new BufferedOutputStream(new FileOutputStream(destinationFilename, false));
-            byte[] buf = new byte[1024];
-            bis.read(buf);
-            do {
-                bos.write(buf);
-            } while(bis.read(buf) != -1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (bis != null) bis.close();
-                if (bos != null) bos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return destinationFilename;
-    }
-
     public void initialize(final Activity context, final String backgroundPath) {
         try {
             ffmpeg = FFmpeg.getInstance(context);
@@ -526,7 +493,7 @@ public class PreviewImageActivity extends AppCompatActivity {
                     File sd = Environment.getExternalStorageDirectory();
                     File dest = new File(sd, imagePath);
 
-                    executeChromaKeyCmd("-y -i " + backgroundPath+ " -i /storage/emulated/0/ScaledOutput.jpg -filter_complex [1:v]chromakey=green:0.13:0.2[ckout];[0:v][ckout]overlay[o] -map [o] -map 1:a? -c:a copy " + dest.getPath(),activity,dest.getPath());
+                    executeChromaKeyCmd("-y -i " + backgroundPath+ " -i /storage/emulated/0/ScaledOutput.jpg -filter_complex [1:v]chromakey=green:0.13:0.2[ckout];[0:v][ckout]overlay=(W-w)/2:(H-h)/2[o] -map [o] -map 1:a? -c:a copy " + dest.getPath(),activity,dest.getPath());
                 }
 
                 @Override
