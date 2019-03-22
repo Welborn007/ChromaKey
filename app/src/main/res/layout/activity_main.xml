@@ -13,7 +13,7 @@
         android:layout_height="match_parent">
 
         <ImageView
-            android:background="@drawable/chromekey3"
+            android:background="@drawable/chromakey_img1"
             android:elevation="10dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -50,17 +50,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_margin="10dp"
-            android:layout_marginTop="50dp"
-            android:padding="10dp"
+            android:padding="15dp"
             fancy:fb_borderColor="@color/Gray"
             fancy:fb_borderWidth="0.5dp"
-            fancy:fb_defaultColor="@android:color/transparent"
+            fancy:fb_defaultColor="@color/red"
             fancy:fb_focusColor="@color/colorPrimary"
             fancy:fb_radius="2dp"
             fancy:fb_text="Click Picture"
-            fancy:fb_textColor="@color/colorPrimaryDark"
-            fancy:fb_textSize="14sp" />
+            fancy:fb_textColor="@color/white"
+            fancy:fb_textSize="22sp" />
 
     </RelativeLayout>
 

@@ -33,21 +33,117 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp" />
 
-            <ImageView
-                android:id="@+id/cropImage1"
-                android:src="@drawable/cropicon"
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
                 android:layout_marginLeft="10dp"
-                android:layout_width="50dp"
-                android:layout_height="50dp" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-            <ImageView
+                <ImageView
+                    android:id="@+id/cropImage1"
+                    android:src="@drawable/cropicon"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+
+                <TextView
+                    android:text="Universal"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
                 android:id="@+id/cropImage2"
                 android:src="@drawable/cropicon"
-                android:layout_marginLeft="10dp"
                 android:layout_width="50dp"
                 android:layout_height="50dp" />
 
+                <TextView
+                    android:text="Malaysia"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/cropImage3"
+                    android:src="@drawable/cropicon"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+
+                <TextView
+                    android:text="China"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/cropImage4"
+                    android:src="@drawable/cropicon"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+
+                <TextView
+                    android:text="Japan"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/cropImage5"
+                    android:src="@drawable/cropicon"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp" />
+
+                <TextView
+                    android:text="Turkey"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
         </LinearLayout>
+
+        <View
+            android:background="#ccc"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/my_recycler_view"

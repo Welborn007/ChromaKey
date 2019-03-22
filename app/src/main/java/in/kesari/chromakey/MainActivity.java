@@ -1,9 +1,12 @@
 package in.kesari.chromakey;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
+import android.media.AudioManager;
+import android.media.MediaActionSound;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -12,6 +15,7 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.wonderkiln.camerakit.CameraKit;
 import com.wonderkiln.camerakit.CameraKitEventCallback;
 import com.wonderkiln.camerakit.CameraKitImage;
 import com.wonderkiln.camerakit.CameraView;
@@ -66,9 +70,16 @@ public class MainActivity extends AppCompatActivity {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
                 dialog.show();
 
+                cameraView.setFlash(CameraKit.Constants.FLASH_ON);
+
                 cameraView.captureImage(new CameraKitEventCallback<CameraKitImage>() {
                     @Override
                     public void callback(CameraKitImage image) {
+
+                        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                        MediaActionSound mSound = new MediaActionSound();
+                        mSound.play(MediaActionSound.SHUTTER_CLICK);
+                        cameraView.setFlash(CameraKit.Constants.FLASH_OFF);
 
                         Bitmap bitmap = image.getBitmap();
 

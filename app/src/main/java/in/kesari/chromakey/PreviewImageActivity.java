@@ -2,6 +2,7 @@ package in.kesari.chromakey;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,6 +14,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.github.chrisbanes.photoview.PhotoView;
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
@@ -45,10 +48,24 @@ import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,16 +84,17 @@ public class PreviewImageActivity extends AppCompatActivity {
     FFmpeg ffmpeg;
     private ArrayList<MediaFile> mediaFiles = new ArrayList<>();
     private final static int FILE_REQUEST_CODE = 1;
-    String backgroundPath,displayName,clickedImagePath;
+    String backgroundPath, displayName, clickedImagePath;
     CustomAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
-    private  RecyclerView recyclerView;
+    private RecyclerView recyclerView;
     LinearLayout imageHolders;
-    ImageView originalImage,cropImage1,cropImage2;
-    int[] myImageList = new int[]{R.drawable.blue, R.drawable.brown,R.drawable.dark_blue, R.drawable.grey,R.drawable.maroon,R.drawable.pink,R.drawable.purple,R.drawable.red,R.drawable.voilet,R.drawable.white};
+    ImageView originalImage, cropImage1, cropImage2, cropImage3, cropImage4, cropImage5;
+    int[] myImageList = new int[]{R.drawable.blue, R.drawable.brown, R.drawable.dark_blue, R.drawable.grey, R.drawable.maroon, R.drawable.pink, R.drawable.purple, R.drawable.red, R.drawable.voilet, R.drawable.white};
     Bitmap myBitmap;
-    boolean crop1Click,crop2Click;
-    Uri resultUri1,resultUri2;
+    boolean crop1Click, crop2Click, crop3Click, crop4Click, crop5Click;
+    Uri resultUri1, resultUri2, resultUri3, resultUri4, resultUri5;
+    File finalOutPutFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,19 +112,22 @@ public class PreviewImageActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        adapter = new CustomAdapter(myImageList,PreviewImageActivity.this);
+        adapter = new CustomAdapter(myImageList, PreviewImageActivity.this);
         recyclerView.setAdapter(adapter);
 
         setImage = (PhotoView) findViewById(R.id.setImage);
         originalImage = (ImageView) findViewById(R.id.originalImage);
         cropImage1 = (ImageView) findViewById(R.id.cropImage1);
         cropImage2 = (ImageView) findViewById(R.id.cropImage2);
+        cropImage3 = (ImageView) findViewById(R.id.cropImage3);
+        cropImage4 = (ImageView) findViewById(R.id.cropImage4);
+        cropImage5 = (ImageView) findViewById(R.id.cropImage5);
 
         clickedImagePath = getIntent().getStringExtra("ImagePath");
 
         File imgFile = new File(clickedImagePath);
 
-        if(imgFile.exists()){
+        if (imgFile.exists()) {
             myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             setImage.setImageBitmap(myBitmap);
             originalImage.setImageBitmap(myBitmap);
@@ -124,16 +145,19 @@ public class PreviewImageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if(resultUri1 != null)
-                {
+                if (resultUri1 != null) {
                     File file = new File(resultUri1.getPath());
                     clickedImagePath = file.getPath();
                     setImage.setImageURI(resultUri1);
                 }
 
                 crop1Click = true;
-                crop2Click= false;
-                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath")))).setCropShape(CropImageView.CropShape.OVAL)
+                crop2Click = false;
+                crop3Click = false;
+                crop4Click = false;
+                crop5Click = false;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .setAspectRatio(35, 45)
                         .start(PreviewImageActivity.this);
             }
         });
@@ -142,16 +166,82 @@ public class PreviewImageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if(resultUri2 != null)
-                {
+                if (resultUri2 != null) {
                     File file = new File(resultUri2.getPath());
                     clickedImagePath = file.getPath();
                     setImage.setImageURI(resultUri2);
                 }
 
                 crop1Click = false;
-                crop2Click= true;
+                crop2Click = true;
+                crop3Click = false;
+                crop4Click = false;
+                crop5Click = false;
                 CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .setAspectRatio(35, 50)
+                        .start(PreviewImageActivity.this);
+            }
+        });
+
+        cropImage3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (resultUri3 != null) {
+                    File file = new File(resultUri3.getPath());
+                    clickedImagePath = file.getPath();
+                    setImage.setImageURI(resultUri3);
+                }
+
+                crop1Click = false;
+                crop2Click = false;
+                crop3Click = true;
+                crop4Click = false;
+                crop5Click = false;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .setAspectRatio(33, 48)
+                        .start(PreviewImageActivity.this);
+            }
+        });
+
+        cropImage4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (resultUri4 != null) {
+                    File file = new File(resultUri4.getPath());
+                    clickedImagePath = file.getPath();
+                    setImage.setImageURI(resultUri4);
+                }
+
+                crop1Click = false;
+                crop2Click = false;
+                crop3Click = false;
+                crop4Click = true;
+                crop5Click = false;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .setAspectRatio(45, 45)
+                        .start(PreviewImageActivity.this);
+            }
+        });
+
+        cropImage5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (resultUri5 != null) {
+                    File file = new File(resultUri5.getPath());
+                    clickedImagePath = file.getPath();
+                    setImage.setImageURI(resultUri5);
+                }
+
+                crop1Click = false;
+                crop2Click = false;
+                crop3Click = false;
+                crop4Click = false;
+                crop5Click = true;
+                CropImage.activity(Uri.fromFile(new File(getIntent().getStringExtra("ImagePath"))))
+                        .setAspectRatio(65, 65)
                         .start(PreviewImageActivity.this);
             }
         });
@@ -161,13 +251,12 @@ public class PreviewImageActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
 
-                        Bitmap bitmap = BitmapFactory.decodeResource( getResources(), myImageList[position]);
+                        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), myImageList[position]);
 
                         File sd = Environment.getExternalStorageDirectory();
                         File dest = new File(sd, getResources().getResourceEntryName(myImageList[position]) + ".jpg");
 
-                        if(!dest.exists())
-                        {
+                        if (!dest.exists()) {
                             try {
                                 FileOutputStream out = new FileOutputStream(dest);
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
@@ -179,19 +268,18 @@ public class PreviewImageActivity extends AppCompatActivity {
                         }
 
                         backgroundPath = dest.getPath();
-                        initialize(PreviewImageActivity.this,backgroundPath);
+                        initialize(PreviewImageActivity.this, backgroundPath);
 
                     }
                 })
         );
 
-        recognizeFace();
+        //recognizeFace();
 
 
     }
 
-    public void recognizeFace()
-    {
+    public void recognizeFace() {
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(myBitmap);
 
         FirebaseVisionFaceDetectorOptions highAccuracyOpts =
@@ -236,7 +324,7 @@ public class PreviewImageActivity extends AppCompatActivity {
                                             myRectPaint.setStyle(Paint.Style.STROKE);
 
                                             tempCanvas.drawRoundRect(new RectF(bounds.left, bounds.top, bounds.right, bounds.bottom), 2, 2, myRectPaint);
-                                            setImage.setImageDrawable(new BitmapDrawable(getResources(),tempBitmap));
+                                            setImage.setImageDrawable(new BitmapDrawable(getResources(), tempBitmap));
 
                                             // If landmark detection was enabled (mouth, ears, eyes, cheeks, and
                                             // nose available):
@@ -328,9 +416,7 @@ public class PreviewImageActivity extends AppCompatActivity {
 
             if (id == android.R.id.home) {
                 finish();
-            }
-            else if(id == R.id.menuImage)
-            {
+            } else if (id == R.id.menuImage) {
                 mediaFiles.clear();
                 Intent intent = new Intent(PreviewImageActivity.this, FilePickerActivity.class);
                 intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
@@ -345,6 +431,8 @@ public class PreviewImageActivity extends AppCompatActivity {
                         //.setRootPath(Environment.getExternalStorageDirectory().getPath() + "/Download")
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
+            } else if (id == R.id.menuPrint) {
+                new ImageUploadTask().execute();
             }
 
         } catch (Exception e) {
@@ -365,7 +453,7 @@ public class PreviewImageActivity extends AppCompatActivity {
             backgroundPath = mediaFile.getPath();
             displayName = mediaFile.getName();
 
-            initialize(PreviewImageActivity.this,backgroundPath);
+            initialize(PreviewImageActivity.this, backgroundPath);
         }
 
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -373,8 +461,7 @@ public class PreviewImageActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 
 
-                if(crop1Click)
-                {
+                if (crop1Click) {
 
                     try {
                         resultUri1 = result.getUri();
@@ -386,15 +473,44 @@ public class PreviewImageActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                }
-                else if(crop2Click)
-                {
+                } else if (crop2Click) {
                     try {
                         resultUri2 = result.getUri();
                         File file = new File(resultUri2.getPath());
                         cropImage2.setImageURI(resultUri2);
                         clickedImagePath = file.getPath();
                         setImage.setImageURI(resultUri2);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else if (crop3Click) {
+                    try {
+                        resultUri3 = result.getUri();
+                        File file = new File(resultUri3.getPath());
+                        cropImage3.setImageURI(resultUri3);
+                        clickedImagePath = file.getPath();
+                        setImage.setImageURI(resultUri3);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (crop4Click) {
+                    try {
+                        resultUri4 = result.getUri();
+                        File file = new File(resultUri4.getPath());
+                        cropImage4.setImageURI(resultUri4);
+                        clickedImagePath = file.getPath();
+                        setImage.setImageURI(resultUri4);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else if (crop5Click) {
+                    try {
+                        resultUri5 = result.getUri();
+                        File file = new File(resultUri5.getPath());
+                        cropImage5.setImageURI(resultUri5);
+                        clickedImagePath = file.getPath();
+                        setImage.setImageURI(resultUri5);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -413,20 +529,20 @@ public class PreviewImageActivity extends AppCompatActivity {
 
                     @Override
                     public void onStart() {
-                        Log.i("FFMPEG","initialize onStart");
+                        Log.i("FFMPEG", "initialize onStart");
                     }
 
                     @Override
                     public void onFailure() {
-                        Log.i("FFMPEG","initialize onFailure");
+                        Log.i("FFMPEG", "initialize onFailure");
                     }
 
                     @Override
                     public void onSuccess() {
                         // FFmpeg is supported by device
-                        Log.i("FFMPEG","initialize Success");
+                        Log.i("FFMPEG", "initialize Success");
                         try {
-                            Log.i("FFMPEG",ffmpeg.getDeviceFFmpegVersion() + " " + ffmpeg.getLibraryFFmpegVersion());
+                            Log.i("FFMPEG", ffmpeg.getDeviceFFmpegVersion() + " " + ffmpeg.getLibraryFFmpegVersion());
                         } catch (FFmpegCommandAlreadyRunningException e) {
                             e.printStackTrace();
                         }
@@ -435,18 +551,18 @@ public class PreviewImageActivity extends AppCompatActivity {
 
                         File imgFile = new File(backgroundPath);
                         Bitmap myBitmap = null;
-                        if(imgFile.exists()){
+                        if (imgFile.exists()) {
                             myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
 
                             Log.i("ClickedImageHeight", String.valueOf(myBitmap.getHeight()));
-                            executeScalingCmd("-y -i " + clickedImagePath +" -vf scale=-1:" + String.valueOf(myBitmap.getHeight()) + " /storage/emulated/0/" + "ScaledOutput.jpg",context);
+                            executeScalingCmd("-y -i " + clickedImagePath + " -vf scale=-1:" + String.valueOf(myBitmap.getHeight()) + " /storage/emulated/0/" + "ScaledOutput.jpg", context);
                         }
 
                     }
 
                     @Override
                     public void onFinish() {
-                        Log.i("FFMPEG","initialize onFinish");
+                        Log.i("FFMPEG", "initialize onFinish");
                     }
                 });
             } catch (FFmpegNotSupportedException e) {
@@ -470,35 +586,35 @@ public class PreviewImageActivity extends AppCompatActivity {
 
                 @Override
                 public void onStart() {
-                    Log.i("FFMPEG","executeCmd onStart");
+                    Log.i("FFMPEG", "executeCmd onStart");
                 }
 
                 @Override
                 public void onProgress(String message) {
-                    Log.i("FFMPEG","executeCmd onProgress " + message);
+                    Log.i("FFMPEG", "executeCmd onProgress " + message);
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Log.i("FFMPEG","executeCmd onFailure " + message);
+                    Log.i("FFMPEG", "executeCmd onFailure " + message);
                 }
 
                 @Override
                 public void onSuccess(String message) {
-                    Log.i("FFMPEG","executeCmd onSuccess " + message);
+                    Log.i("FFMPEG", "executeCmd onSuccess " + message);
 
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-                    String imagePath = timeStamp +".jpg";
+                    String imagePath = timeStamp + ".jpg";
 
                     File sd = Environment.getExternalStorageDirectory();
                     File dest = new File(sd, imagePath);
 
-                    executeChromaKeyCmd("-y -i " + backgroundPath+ " -i /storage/emulated/0/ScaledOutput.jpg -filter_complex [1:v]chromakey=green:0.13:0.2[ckout];[0:v][ckout]overlay=(W-w)/2:(H-h)/2[o] -map [o] -map 1:a? -c:a copy " + dest.getPath(),activity,dest.getPath());
+                    executeChromaKeyCmd("-y -i " + backgroundPath + " -i /storage/emulated/0/ScaledOutput.jpg -filter_complex [1:v]chromakey=green:0.13:0.2[ckout];[0:v][ckout]overlay=(W-w)/2:(H-h)/2[o] -map [o] -map 1:a? -c:a copy " + dest.getPath(), activity, dest.getPath());
                 }
 
                 @Override
                 public void onFinish() {
-                    Log.i("FFMPEG","executeCmd onFinish");
+                    Log.i("FFMPEG", "executeCmd onFinish");
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
@@ -518,38 +634,153 @@ public class PreviewImageActivity extends AppCompatActivity {
 
                 @Override
                 public void onStart() {
-                    Log.i("FFMPEG","executeCmd onStart");
+                    Log.i("FFMPEG", "executeCmd onStart");
                 }
 
                 @Override
                 public void onProgress(String message) {
-                    Log.i("FFMPEG","executeCmd onProgress " + message);
+                    Log.i("FFMPEG", "executeCmd onProgress " + message);
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Log.i("FFMPEG","executeCmd onFailure " + message);
+                    Log.i("FFMPEG", "executeCmd onFailure " + message);
                 }
 
                 @Override
                 public void onSuccess(String message) {
-                    Log.i("FFMPEG","executeCmd onSuccess " + message);
+                    Log.i("FFMPEG", "executeCmd onSuccess " + message);
 
-                    File imgFile = new File(OutputImagePath);
-                    if(imgFile.exists()){
-                        Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    finalOutPutFile = new File(OutputImagePath);
+                    if (finalOutPutFile.exists()) {
+                        Bitmap myBitmap = BitmapFactory.decodeFile(finalOutPutFile.getAbsolutePath());
                         setImage.setImageBitmap(myBitmap);
                     }
+
+
                 }
 
                 @Override
                 public void onFinish() {
-                    Log.i("FFMPEG","executeCmd onFinish");
+                    Log.i("FFMPEG", "executeCmd onFinish");
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
             e.printStackTrace();
             //There is a command already running
+        }
+    }
+
+    class ImageUploadTask extends AsyncTask<Void, Void, String> {
+        private String webAddressToPost = "https://login.kesari.in/route/upload/aws/";
+
+        private ProgressDialog dialog = new ProgressDialog(PreviewImageActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+
+            try {
+
+                dialog.setMessage("Uploading...");
+                dialog.setCancelable(false);
+                dialog.show();
+                Log.i("Pre", "Execute");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                Log.i("doIn", "Background");
+                URL url = new URL(webAddressToPost);
+
+                Log.i("url", url.toString());
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Connection", "Keep-Alive");
+
+               /* MultipartEntity entity = new MultipartEntity(
+                        HttpMultipartMode.BROWSER_COMPATIBLE);*/
+
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+                builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+                builder.addPart("image", new FileBody(finalOutPutFile));
+
+                builder.addPart("path", new StringBody("ChromaKeyPhoto", ContentType.TEXT_PLAIN));
+
+                //entity.addPart("someOtherStringToSend", new StringBody("your string here"));
+
+                HttpEntity entity = builder.build();
+
+                conn.addRequestProperty("Content-length", entity.getContentLength() + "");
+                conn.addRequestProperty(entity.getContentType().getName(), entity.getContentType().getValue());
+
+                OutputStream os = conn.getOutputStream();
+                entity.writeTo(conn.getOutputStream());
+                os.close();
+                conn.connect();
+
+
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    return readStream(conn.getInputStream());
+                }
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                // something went wrong. connection with the server error
+            }
+            return null;
+        }
+
+
+        private String readStream(InputStream in) {
+            BufferedReader reader = null;
+            StringBuilder builder = new StringBuilder();
+            try {
+                reader = new BufferedReader(new InputStreamReader(in));
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return builder.toString();
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            try {
+
+                dialog.dismiss();
+                Log.i("ImagePathResult", result);
+
+                JSONObject jsonObject = new JSONObject(result);
+
+                String message = jsonObject.getString("message");
+                String url = jsonObject.getString("url");
+
+                Toast.makeText(PreviewImageActivity.this, "Upload Successful", Toast.LENGTH_SHORT).show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
