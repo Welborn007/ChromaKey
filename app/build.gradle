@@ -8,6 +8,7 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     useLibrary 'org.apache.http.legacy'
@@ -16,6 +17,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    dexOptions {
+        javaMaxHeapSize "4g"
     }
 }
 
@@ -36,11 +41,13 @@ dependencies {
     implementation 'com.wonderkiln:camerakit:0.13.1'
     implementation 'com.github.jaiselrahman:FilePicker:1.2.0'
     implementation 'gun0912.ted:tedpermission:2.1.0'
+    implementation 'com.android.volley:volley:1.1.1'
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.0'
     //implementation 'com.arthenica:mobile-ffmpeg-full:4.2'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'com.google.firebase:firebase-ml-vision:19.0.2'
     implementation 'com.google.firebase:firebase-ml-vision-face-model:17.0.2'
+    implementation 'androidx.multidex:multidex:2.0.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'

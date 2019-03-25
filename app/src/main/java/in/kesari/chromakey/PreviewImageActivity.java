@@ -55,6 +55,7 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -776,11 +777,36 @@ public class PreviewImageActivity extends AppCompatActivity {
                 String message = jsonObject.getString("message");
                 String url = jsonObject.getString("url");
 
-                Toast.makeText(PreviewImageActivity.this, "Upload Successful", Toast.LENGTH_SHORT).show();
+                postChromaKeyImage(url);
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void postChromaKeyImage(String filePath) {
+
+        JSONObject json = new JSONObject();
+
+        try {
+
+            json.put("url", filePath);
+
+            Log.i("DOCUMENT JSON CREATED", json.toString());
+
+            IOUtils ioUtils = new IOUtils();
+
+            ioUtils.sendJSONObjectRequestHeader(PreviewImageActivity.this, "http://192.168.1.45:3000/route/chromaKeyPhoto", json, new IOUtils.VolleyCallback() {
+                @Override
+                public void onSuccess(String result) {
+                    Log.i("Result",result);
+                    Toast.makeText(PreviewImageActivity.this, "Upload Successful", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }
