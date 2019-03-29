@@ -797,7 +797,7 @@ public class PreviewImageActivity extends AppCompatActivity {
 
             IOUtils ioUtils = new IOUtils();
 
-            ioUtils.sendJSONObjectRequestHeader(PreviewImageActivity.this, "http://192.168.1.45:3000/route/chromaKeyPhoto", json, new IOUtils.VolleyCallback() {
+            ioUtils.sendJSONObjectRequestHeader(PreviewImageActivity.this, "http://192.168.1.7:3000/route/chromaKeyPhoto", json, new IOUtils.VolleyCallback() {
                 @Override
                 public void onSuccess(String result) {
                     Log.i("Result",result);
